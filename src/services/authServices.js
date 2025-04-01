@@ -1,31 +1,33 @@
 import apiClient from './apiClient';
-import { setToken } from '../utils/tokenUtils';
 
 export const login = async (email, password) => {
   try {
     const response = await apiClient.post('/auth/login', { email, password });
-    setToken(response.data.token);
-    return response.data;
+    if (response.success && response.token) {
+      localStorage.setItem('resume_pro_token', response.token);
+      return response;
+    }
+    throw new Error(response.error || 'Login failed');
   } catch (error) {
-    throw error.response?.data || { message: 'Login failed' };
+    console.error('Login error:', error);
+    throw error;
   }
 };
 
 export const register = async (email, name, password) => {
   try {
     const response = await apiClient.post('/auth/register', { email, name, password });
-    setToken(response.data.token);
-    return response.data;
+    if (response.success && response.token) {
+      localStorage.setItem('resume_pro_token', response.token);
+      return response;
+    }
+    throw new Error(response.error || 'Registration failed');
   } catch (error) {
-    throw error.response?.data || { message: 'Registration failed' };
+    console.error('Registration error:', error);
+    throw error;
   }
 };
 
-export const getUserDetails = async () => {
-  try {
-    const response = await apiClient.get('/user/details');
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Failed to fetch user details' };
-  }
+export const logout = () => {
+  localStorage.removeItem('resume_pro_token');
 };
