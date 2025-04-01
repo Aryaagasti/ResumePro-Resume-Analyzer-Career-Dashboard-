@@ -18,7 +18,9 @@ const Login = () => {
     setLoading(true);
 
     try {
+      console.log('Logging in with:', { email, password });
       const response = await login(email, password);
+      console.log('Login response:', response);
       authLogin(response);
       navigate('/dashboard');
     } catch (err) {

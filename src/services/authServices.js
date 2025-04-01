@@ -3,7 +3,8 @@ import apiClient from './apiClient';
 export const login = async (email, password) => {
   try {
     const response = await apiClient.post('/auth/login', { email, password });
-    if (response.success && response.token) {
+    console.log('Login response:', response);
+    if (response && response.token) {
       localStorage.setItem('resume_pro_token', response.token);
       return response;
     }
@@ -17,7 +18,7 @@ export const login = async (email, password) => {
 export const register = async (email, name, password) => {
   try {
     const response = await apiClient.post('/auth/register', { email, name, password });
-    if (response.success && response.token) {
+    if (response && response.token) {
       localStorage.setItem('resume_pro_token', response.token);
       return response;
     }
