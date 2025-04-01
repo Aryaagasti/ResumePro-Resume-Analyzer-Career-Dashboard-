@@ -43,30 +43,30 @@ const FeedbackAnalyzer = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to analyze feedback');
       }
 
       const result = await response.json();
       
-      // Transform backend response to match expected frontend structure
-      const formattedAnalysis = {
+      setAnalysis({
         sentiment: result.sentiment || 'Neutral',
         sentiment_score: result.sentiment_score || 50,
         key_points: result.key_insights || [],
         suggestions: result.improvement_areas || [],
         recommendations: result.recommendations || '',
         error: result.error
-      };
-      
-      setAnalysis(formattedAnalysis);
+      });
     } catch (err) {
       setError(err.message || 'Failed to analyze feedback');
+      if (err.message.includes('Authorization')) {
+        // Handle unauthorized error
+        window.location.href = '/login';
+      }
     } finally {
       setLoading(false);
     }
   };
-
   const getSentimentBadge = (sentiment) => {
     switch(sentiment?.toLowerCase()) {
       case 'positive': return 'success';
