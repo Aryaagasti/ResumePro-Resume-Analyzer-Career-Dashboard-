@@ -31,3 +31,14 @@ export const register = async (email, name, password) => {
 export const logout = () => {
   localStorage.removeItem('resume_pro_token');
 };
+
+export const getUserDetails = async () => {
+  try {
+    // Fetch user details from an API or local storage, depending on your logic
+    const response = await fetch('/api/user/details');  // Replace with your API call
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error('Failed to fetch user details');
+  }
+};
