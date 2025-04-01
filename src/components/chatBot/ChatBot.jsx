@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Spinner, ListGroup } from 'react-bootstrap';
 import { FiMessageSquare, FiX } from 'react-icons/fi';
-import { askQuestion } from '../../services/chatbotService';
 
 const Chatbot = () => {
   const [show, setShow] = useState(false);
@@ -12,22 +11,36 @@ const Chatbot = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // Function to clean up the response text
   const cleanResponse = (text) => {
     if (!text) return '';
-    
-    // Remove markdown characters like *, #, etc.
-    let cleaned = text.replace(/\*/g, '')
-                     .replace(/#/g, '')
-                     .replace(/```/g, '');
-    
-    // Convert markdown links to HTML links
-    cleaned = cleaned.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
-    
-    // Convert line breaks to HTML breaks
-    cleaned = cleaned.replace(/\n/g, '<br/>');
-    
-    return cleaned;
+    return text.replace(/\*/g, '')
+              .replace(/#/g, '')
+              .replace(/```/g, '')
+              .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
+              .replace(/\n/g, '<br/>');
+  };
+
+  const askQuestion = async (question) => {
+    try {
+      const response = await fetch('https://finalyearmcabackend.onrender.com/api/chatbot/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ question })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get response');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -41,13 +54,18 @@ const Chatbot = () => {
   
     try {
       const response = await askQuestion(message);
-      const cleanedAnswer = cleanResponse(response.answer);
       
+      // Handle both response formats
+      const answer = response.answer || response.message || response.response;
+      if (!answer) throw new Error('No response from the bot');
+      
+      const cleanedAnswer = cleanResponse(answer);
       const botMessage = { 
         sender: 'bot', 
         text: cleanedAnswer,
-        resources: response.resources 
+        resources: response.resources || [] 
       };
+      
       setConversation(prev => [...prev, botMessage]);
     } catch (error) {
       console.error(error);
@@ -75,18 +93,12 @@ const Chatbot = () => {
     }
   }, [show]);
 
-  // Function to render text with HTML breaks
   const renderTextWithBreaks = (text) => {
     return <div dangerouslySetInnerHTML={{ __html: text }} />;
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      zIndex: 1000
-    }}>
+    <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
       <Button 
         variant="primary" 
         onClick={handleShow}
@@ -121,14 +133,14 @@ const Chatbot = () => {
                     : 'bg-light text-dark'}`}
                 >
                   {renderTextWithBreaks(msg.text)}
-                  {msg.resources && (
+                  {msg.resources && msg.resources.length > 0 && (
                     <div className="mt-2">
                       <h6>Helpful Resources:</h6>
                       <ListGroup>
-                        {Object.entries(msg.resources).map(([key, url]) => (
-                          <ListGroup.Item key={key}>
-                            <a href={url} target="_blank" rel="noopener noreferrer">
-                              {key.replace('_', ' ')} →
+                        {msg.resources.map((resource, i) => (
+                          <ListGroup.Item key={i}>
+                            <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                              {resource.title || `Resource ${i+1}`} →
                             </a>
                           </ListGroup.Item>
                         ))}
@@ -156,7 +168,7 @@ const Chatbot = () => {
                 disabled={loading}
               />
               <Button variant="primary" type="submit" disabled={loading}>
-                Send
+                {loading ? <Spinner size="sm" /> : 'Send'}
               </Button>
             </Form.Group>
           </Form>
