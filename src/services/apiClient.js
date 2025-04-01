@@ -1,34 +1,45 @@
 import axios from 'axios';
-import { getToken, removeToken } from '../utils/tokenUtils';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://finalyearmcabackend.onrender.com/api',
+  baseURL: 'https://finalyearmcabackend.onrender.com/api',
+  timeout: 30000, // 30 seconds timeout
 });
 
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = getToken();
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Request interceptor
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
   }
-);
+  return config;
+}, error => {
+  return Promise.reject(error);
+});
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      if (!error.config.url.includes('/chatbot/')) {
-        removeToken();
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
+// Response interceptor
+apiClient.interceptors.response.use(response => {
+  return response.data;
+}, error => {
+  if (error.code === 'ECONNABORTED') {
+    return Promise.reject({ message: 'Request timeout. Please try again.' });
   }
-);
+  
+  if (error.response) {
+    // Handle specific status codes
+    const { status, data } = error.response;
+    
+    if (status === 401) {
+      // Redirect to login if token is invalid
+      window.location.href = '/login?session_expired=true';
+      return;
+    }
+    
+    return Promise.reject(data || { message: `Request failed with status ${status}` });
+  } else if (error.request) {
+    return Promise.reject({ message: 'No response received from server' });
+  } else {
+    return Promise.reject({ message: error.message || 'Request failed' });
+  }
+});
 
 export default apiClient;
