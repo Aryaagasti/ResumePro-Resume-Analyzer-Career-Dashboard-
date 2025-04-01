@@ -3,7 +3,6 @@ import apiClient from './apiClient';
 export const login = async (email, password) => {
   try {
     const response = await apiClient.post('/auth/login', { email, password });
-    console.log('Login response:', response);
     if (response && response.token) {
       localStorage.setItem('resume_pro_token', response.token);
       return response;
@@ -18,7 +17,7 @@ export const login = async (email, password) => {
 export const register = async (email, name, password) => {
   try {
     const response = await apiClient.post('/auth/register', { email, name, password });
-    if (response && response.token) {
+    if (response  && response.token) {
       localStorage.setItem('resume_pro_token', response.token);
       return response;
     }
@@ -35,11 +34,10 @@ export const logout = () => {
 
 export const getUserDetails = async () => {
   try {
-    // Fetch user details from an API or local storage, depending on your logic
-    const response = await fetch('/api/user/details');  // Replace with your API call
-    const data = await response.json();
-    return data;
+      const response = await apiClient.get('/auth/user');
+      return response.data;
   } catch (error) {
-    throw new Error('Failed to fetch user details');
+      console.error('Error fetching user details:', error);
+      throw error;
   }
 };
