@@ -6,17 +6,17 @@ import { getUserDetails } from "../../services/authServices";
 import Chatbot from "../chatBot/ChatBot";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user } = useAuth(); // Use authentication context
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState(null);
 
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate("/login"); // Redirect to login if no user is authenticated
     } else {
       const fetchUserDetails = async () => {
         try {
-          const details = await getUserDetails();
+          const details = await getUserDetails(); // Fetch user details from API
           setUserDetails(details);
         } catch (error) {
           console.error("Failed to fetch user details", error);
@@ -38,7 +38,7 @@ const Dashboard = () => {
       <Container fluid className="bg-light py-5">
         <Row className="mb-4 text-center">
           <Col>
-            <h1 className="fw-bold">Welcome, {userDetails?.user?.name || user?.name || "User"}! 🚀</h1>
+            <h1 className="fw-bold">Welcome, {userDetails?.name || "User"}! 🚀</h1>
             <p className="text-secondary">Your career development dashboard</p>
           </Col>
         </Row>
@@ -60,9 +60,8 @@ const Dashboard = () => {
           ))}
         </Row>
       </Container>
-      
-      {/* Chatbot positioned outside main container */}
-      <Chatbot />
+
+      <Chatbot /> {/* Chatbot Component */}
     </>
   );
 };
