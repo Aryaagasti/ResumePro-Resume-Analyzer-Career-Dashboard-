@@ -11,6 +11,7 @@ import ResumeAnalyzer from "./components/resume/ResumeAnalyzer";
 import CourseRecommendation from "./components/job/CourseRecommendation";
 import CoverLetterGenerator from "./components/tools/CoverLetterGenerator";
 import FeedbackAnalyzer from "./components/tools/FeedbackAnalyzer";
+import UserProfile from "./components/profileuser/UserProfie";
 import PrivateRoute from "./components/common/PrivateRoute";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -33,6 +34,7 @@ function App() {
               <Route path="/courses" element={<PrivateRoute><CourseRecommendation /></PrivateRoute>} />
               <Route path="/cover-letter" element={<PrivateRoute><CoverLetterGenerator /></PrivateRoute>} />
               <Route path="/feedback" element={<PrivateRoute><FeedbackAnalyzer /></PrivateRoute>} />
+              <Route path="/profile" element={<PrivateRoute><UserProfile /></PrivateRoute>} />
               {/* Removed the /chatbot route */}
             </Routes>
           </ErrorBoundary>
