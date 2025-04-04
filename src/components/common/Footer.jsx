@@ -1,8 +1,21 @@
 import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { getToken, isTokenExpired } from "../../utils/tokenUtils";
 
 const Footer = () => {
+  const { user } = useAuth(); // Access user state via AuthContext
+  const navigate = useNavigate();
+
+  const handleRestrictedAccess = (path) => {
+    if (!getToken() || isTokenExpired()) {
+      navigate("/login"); // Redirect to login if no valid token
+    } else {
+      navigate(path); // Navigate to the requested path if authenticated
+    }
+  };
+
   return (
     <footer style={{ backgroundColor: "#16213E", color: "#EAEAEA" }} className="py-4 mt-5">
       <Container>
@@ -14,16 +27,47 @@ const Footer = () => {
           <Col md={4}>
             <h5>Quick Links</h5>
             <ul className="list-unstyled">
-              <li><Link className="text-light text-decoration-none" to="/resume-analyzer">Resume Analyzer</Link></li>
-              <li><Link className="text-light text-decoration-none" to="https://resume-builder-aii.onrender.com">ResumeMaker</Link></li>
-              <li><Link className="text-light text-decoration-none" to="/cover-letter">Cover Letter</Link></li>
-              <li><Link className="text-light text-decoration-none" to="/courses">Courses</Link></li>
+              <li>
+                <span
+                  className="text-light text-decoration-none"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleRestrictedAccess("/resume-analyzer")}
+                >
+                  Resume Analyzer
+                </span>
+              </li>
+              <li>
+                <span
+                  className="text-light text-decoration-none"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleRestrictedAccess("https://resume-builder-aii.onrender.com")}
+                >
+                  ResumeMaker
+                </span>
+              </li>
+              <li>
+                <span
+                  className="text-light text-decoration-none"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleRestrictedAccess("/cover-letter")}
+                >
+                  Cover Letter
+                </span>
+              </li>
+              <li>
+                <span
+                  className="text-light text-decoration-none"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleRestrictedAccess("/courses")}
+                >
+                  Courses
+                </span>
+              </li>
             </ul>
           </Col>
           <Col md={4}>
             <h5>Contact Us</h5>
             <p>Email: support@resumepro.com</p>
-            <p>Phone: +91 98765 43210</p>
           </Col>
         </Row>
         <hr className="bg-light" />
