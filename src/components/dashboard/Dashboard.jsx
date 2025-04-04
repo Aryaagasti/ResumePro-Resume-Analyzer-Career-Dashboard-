@@ -1,36 +1,60 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { getUserDetails } from "../../services/authServices";
+import { getUserProfile } from "../../services/userService";
+import { getToken, isTokenExpired } from "../../utils/tokenUtils";
 import Chatbot from "../chatBot/ChatBot";
 
 const Dashboard = () => {
-  const { user } = useAuth(); // Use authentication context
+  const [userName, setUserName] = useState(""); // State to store user's name
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] = useState(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login"); // Redirect to login if no user is authenticated
-    } else {
-      const fetchUserDetails = async () => {
-        try {
-          const details = await getUserDetails(); // Fetch user details from API
-          setUserDetails(details);
-        } catch (error) {
-          console.error("Failed to fetch user details", error);
-        }
-      };
-      fetchUserDetails();
+    // Check if user is logged in and the token is valid
+    if (!getToken() || isTokenExpired()) {
+      navigate("/login");
+      return;
     }
-  }, [user, navigate]);
+
+    // Fetch user profile details
+    const fetchUserName = async () => {
+      try {
+        const response = await getUserProfile(); // Fetch user profile from API
+        setUserName(response.user.fullName); // Set the user's full name in state
+      } catch (error) {
+        console.error("Failed to fetch user details:", error);
+        navigate("/login"); // Redirect to login if fetching profile fails
+      }
+    };
+
+    fetchUserName();
+  }, [navigate]);
 
   const dashboardItems = [
-    { title: "Resume Analyzer", description: "Analyze and optimize your resume", link: "/resume-analyzer", icon: "📄" },
-    { title: "Cover Letter Generator", description: "Create tailored cover letters", link: "/cover-letter", icon: "✉️" },
-    { title: "Course Recommendations", description: "Boost your skills", link: "/courses", icon: "📚" },
-    { title: "Resume Maker (Premium)", description: "Create ATS-friendly resumes", link: "https://resume-builder-aii.onrender.com", icon: "✨" },
+    {
+      title: "Resume Analyzer",
+      description: "Analyze and optimize your resume",
+      link: "/resume-analyzer",
+      icon: "📄",
+    },
+    {
+      title: "Cover Letter Generator",
+      description: "Create tailored cover letters",
+      link: "/cover-letter",
+      icon: "✉️",
+    },
+    {
+      title: "Course Recommendations",
+      description: "Boost your skills",
+      link: "/courses",
+      icon: "📚",
+    },
+    {
+      title: "Resume Maker (Premium)",
+      description: "Create ATS-friendly resumes",
+      link: "https://resume-builder-aii.onrender.com",
+      icon: "✨",
+    },
   ];
 
   return (
@@ -38,7 +62,9 @@ const Dashboard = () => {
       <Container fluid className="bg-light py-5">
         <Row className="mb-4 text-center">
           <Col>
-            <h1 className="fw-bold">Welcome, {userDetails?.name || "User"}! 🚀</h1>
+            <h1 className="fw-bold">
+              Welcome, {userName || "User"}! 🚀
+            </h1>
             <p className="text-secondary">Your career development dashboard</p>
           </Col>
         </Row>
